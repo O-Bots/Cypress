@@ -47,4 +47,32 @@ describe('Website functionality works as expected', () => {
     //Verify the page is correct
     cy.get('h2').should('have.class', 'title text-center').find('b').should('have.text', 'Test Cases');
   });
+
+  it('Successfully navigates to the products page and view the details of a product', () => {
+    //Navigate to the products page
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(1).click();
+
+    //Confirm the page is correct
+    cy.get('div[class=features_items]').find('h2').first().should('have.text', 'All Products');
+
+    //Gather product information
+    cy.get('div[class=single-products]').eq(0).find('div').eq(0).within(function (){
+      cy.get('h2').then(function (data) {
+        this.productPrice = data.text()
+      });
+      cy.get('p').then(function (data) {
+        this.productName = data.text()
+      });
+    });
+
+    //Select the first product
+    cy.get('div[class=product-image-wrapper]').eq(0).find('ul > li').should('have.text', 'View Product').click();
+
+    //Confirm product information
+    cy.get('.product-information').should('be.visible').within(function () {
+      cy.get('h2').first().should('have.text', this.productName);
+      cy.get('span').first().find('span').should('have.text', this.productPrice);
+    });
+  });
+
 });

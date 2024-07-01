@@ -81,7 +81,7 @@ function createUser () {
     cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(9).within(function () {
       cy.get('a').find('b').should('have.text', this.accountDetails.account_name);
     });
-}
+};
 describe('Account functionality works as expected', () => {
 
   beforeEach(() =>{

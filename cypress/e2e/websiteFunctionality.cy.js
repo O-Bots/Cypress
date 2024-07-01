@@ -658,7 +658,7 @@ describe('Website functionality works as expected', () => {
     cy.get('[data-qa=continue-button]').click();
   });
 
-  it('Successfully removes a product from the cat', () => {
+  it('Successfully removes a product from the cart', () => {
     //Gather information of all products on the home page
     cy.get('.features_items').within(() => {
       cy.get('.product-image-wrapper').then((item) => {

@@ -762,5 +762,179 @@ describe('Website functionality works as expected', () => {
 
   });
 
+  it('Successfully navigates to a product category', () => {
+
+    //Confirm that Category is visible
+    cy.get('.left-sidebar > h2').first().should('have.text', 'Category');
+
+    //Select a category
+    cy.get('.panel-group.category-products').find('div').eq(0).within(() => {
+
+      //Grab Category name
+      cy.get('div[class=panel-heading]').within(function (item) {
+        this.categoryName = item.text().replace(/\s+/g, '')
+      });
+
+      //Click on Women category
+      cy.get('.badge.pull-right').click();
+
+      //Choose a subcategory
+      cy.get('.panel-body > ul').find('li').eq(0).within(function (item) {
+        this.subCategoryName = item.find('a').text()
+
+        cy.get('a').click();
+      });
+    });
+
+    //Confirm the correct category is being displayed
+    cy.get('.features_items').within(function () {
+      cy.get('h2').first().should('contain.text', this.categoryName);
+      cy.get('h2').first().should('contain.text', this.subCategoryName);
+    });
+
+  });
+
+  it('Successfully navigates to a brand', ()=> {
+    //Navigate to the products page
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(1).click();
+
+    //Confirm that Brands is visible
+    cy.get('.brands_products').within(() => {
+      cy.get('h2').should('have.text', 'Brands');
+
+      //Click on a brand
+      cy.get('.nav.nav-pills.nav-stacked').find('li').first().within(function (item) {
+        this.brandName = item.find('a').text().replace(/\s+/g, '').replace(/[\W\d]/g, '');
+
+        cy.get('a').click();
+      });
+    });
+
+    //Confirm the correct brand is being displayed
+    cy.get('.features_items').within(function () {
+      cy.get('h2').first().should('contain.text', this.brandName);
+    });
+
+    //Confirm that Brands is visible
+    cy.get('.brands_products').within(() => {
+      cy.get('h2').should('have.text', 'Brands');
+
+      //Click on a brand
+      cy.get('.nav.nav-pills.nav-stacked').find('li').eq(2).within(function (item) {
+        this.brandNameTwo = item.find('a').text().replace(/\s+/g, '').replace(/[\W\d]/g, '');
+
+        cy.get('a').click();
+      });
+    });
+
+    //Confirm the correct brand is being displayed
+    cy.get('.features_items').within(function () {
+      cy.get('h2').first().should('contain.text', this.brandNameTwo);
+    });
+
+  });
+
+  it('Creates a new acccount', () => {
+    //Create user function
+    createUser();
+  })
+
+  it('Shows products added to the cart from searching after logging in', () => {
+
+    //Navigate to the products page
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(1).click();
+
+    //Confirm the page is correct
+    cy.get('div[class=features_items]').find('h2').first().should('have.text', 'All Products');
+
+    //Gather product information
+    cy.get('div[class=single-products]').find('.productinfo.text-center').each( (item) => {
+      for (let i = 0; i < item.length; i++) {
+        const productInfo = {
+          name: item.find('p').text(),
+          price: item.find('h2').text()
+        }
+        productArr.push(productInfo);
+      };
+    });
+
+    //Search for a product
+    cy.get('.container').eq(1).within(() => {
+      const rngProduct = Math.floor(Math.random()* productArr.length);
+      productRng=rngProduct
+      cy.get('#search_product').type(productArr[productRng].name);
+      cy.get('#submit_search').click();
+      
+    });
+
+    //Confirm that page and correct product is showing
+    cy.get('.features_items').within(() =>{
+      cy.get('h2').first().should('be.visible').contains('SEARCHED PRODUCTS', {matchCase: false});
+
+      //Confirm that only one product is showing
+      cy.get('div').find('.col-sm-4').should('have.length', 0);
+
+      cy.get('div[class=single-products]').find('.productinfo.text-center').within(() => {
+
+        cy.get('h2').should('have.text', productArr[productRng].price);
+        cy.get('p').should('have.text', productArr[productRng].name);
+
+        //Add product to cart
+        cy.get('a').click();
+      });
+    });
+
+    //Close the Contiune shopping modal
+    cy.get('.modal-footer').find('button').click();
+
+    //Navigate to the cart page
+    cy.get('.nav.navbar-nav').find('li').eq(2).click();
+
+    //Confirm the cart has the correct prodcuts
+    cy.get('.table.table-condensed').within(() => {
+      cy.get('tbody').find('tr').eq(0).within(function () {
+        cy.get('td[class=cart_description]').find('a').should('have.text', productArr[productRng].name);
+        cy.get('td[class=cart_price]').find('p').should('have.text', productArr[productRng].price);
+        cy.get('td[class=cart_quantity]').find('button').should('have.text', 1);
+      });
+    });
+
+    //Click log in
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(3).click();
+
+    //Enter login details
+    cy.get('.login-form').within(function () {
+      cy.get('[data-qa=login-email]').type(this.accountDetails.email);
+      cy.get('[data-qa=login-password]').type(this.accountDetails.password);
+      cy.get('[data-qa=login-button]').click();
+    });
+
+    //Confirm account details
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(9).within(function (){
+      cy.get('b').should('have.text', this.accountDetails.account_name);
+    });
+
+    //Navigate to the cart page
+    cy.get('.nav.navbar-nav').find('li').eq(2).click();
+
+    //Confirm the cart has the correct prodcuts
+    cy.get('.table.table-condensed').within(() => {
+      cy.get('tbody').find('tr').eq(0).within(function () {
+        cy.get('td[class=cart_description]').find('a').should('have.text', productArr[productRng].name);
+        cy.get('td[class=cart_price]').find('p').should('have.text', productArr[productRng].price);
+        cy.get('td[class=cart_quantity]').find('button').should('have.text', 1);
+      });
+    });
+
+    //Delete account
+    cy.get('ul').should('have.class', 'nav navbar-nav').find('li').eq(4).click();
+
+    //Confirm account as been deleted
+    cy.get('[data-qa=account-deleted]').should('be.visible');
+
+    //Click contiue
+    cy.get('[data-qa=continue-button]').click();
+  });
+
 
 });
